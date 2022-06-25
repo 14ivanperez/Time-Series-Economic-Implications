@@ -1,33 +1,28 @@
-## INDEX OF THE PROJECT
+## INDEX: MAIN TOPICS
 ---
- 
-### a)Graph the series for sales. Does it appear to be stationary, trend stationary or stochastic?
-<img src="Images/Series graph.png">
+### 1.Regarding file cons.dta: it contains quarterly data on the log of real personal disposable income (Y) and the log of real personal consumption expenditure (C) for the US economy over the period 1960:1 to 2009:4
 
-### b)Test for the presence of a unit root with Dickey–Fuller (ADF) test.
-<img src="Images/dickey fuller.png">
+#### a)Dickey fuller tests to see whether series have a unit root or not
+<img src="Images/dfuller.png">
 
-### c)Autocorrelation function
-<img src="Images/ACF & PACF.png">
+#### b)Estimation of the simple Keynesian consumption function and it implication of non-stationarity of the series for the results of the regression of oncome on consumption expenditure
+<img src="Images/Consumption function estimate.png">
 
-### d)Estimate the model
-<img src="Images/ARMA1 estimation.png">
+#### c)Estimation of a DL version of the regression mentioned above
+<img src="Images/DL version function.png">
 
-### e) & f)Assess your model using an information criterion
-<img src="Images/BIC test.png">
+#### d)Calculation and implications of the long run marginal effect of log income on log consumption
+<img src="Images/reg log marg effect on log income.png">
 
-### g)Generate forecasts for the next 57 observations, and plot forecasted and actual observations. 
-<img src="Images/comparison forecast and annual.png">
+### 2.Purchasing Power Parity (PPP) says that prices and exchange rates will remain in equilibrium. We will use the file ppp.dta which contains data on the UK CPI, the US CPI and the $/£ exchange rate.
 
-### h) A VAR model
-<img src="Images/VAR.png">
+#### a)Assessing the stationarity of the time series by another Dickey Fuller test
+<img src="Images/dfuller 2.png">
 
-### i) Granger cause
-<img src="Images/Granger.png">
+#### b)Testing if time series are cointegrated
+<img src="Images/test no cointegration.png">
 
-### j)Set of Impulse Response Functions
-<img src="Images/Impulse Response Functions.png">
+#### c)Estimating an error-correction model
+<img src="Images/ECM.png">
 
-### k)Generate a forecast of sales from the VAR and compare it to the previous univariate forecast.
-<img src="Images/forecast VAR AR.png">
 

@@ -1,55 +1,76 @@
-## Example of Time Series
+## Understanding some economic implications using Time Series
 
 ### Introduction
 
-More than 10 exercises where the use of Time Series knowledge is required. I srtart testing for the presence of unit roots, reviewing the auotocorrelation function, estimating models to produce forecasts and, finally, generating a Vector Autoregression model and a set impulse response functions.
-
+The work is divided in 2 issues: 
+-The relationship between the log of real personal disposable income (Y) and the log of real personal consumption expenditure (C) for the US economy over the period 
+1960:1 to 2009:4.
+-Review of the Purchasing Power Parity (PPP), which says that prices and exchange rates will remain in equilibrium. We will use data on the UK CPI, the US CPI and the $/£ exchange rate .
 
 ### Installation and load data set
-
-The file sales.dta contains 157 weekly observations on sales revenues (sales) and advertising
-expenditure (adv) in millions of dollars for a large US department store for 2005-2007. The 
-weeks are from December 28, 2004, to December 25, 2007.
+The data file cons.dta contains quarterly data on the log of real personal disposable income (Y) 
+and the log of real personal consumption expenditure (C). 
+The file ppp.dta contains data on the UK CPI, the US CPI and the $/£ exchange rate
 
 ```markdown
-use sales.dta, // load the file sales.dta 
+cd "$home"  // the path to whatever directory the datafile is in
 
-drop if sales==. // drop missing values: weekends, holidays etc 
-rename t w //rename variable t as w (weeks) 
+use "C:\Users\ivvan\Downloads\cons.dta", // load the file cons.dta 
 
-tsset w // tell stata to use weeks as the time index
+drop if c==.
+drop if y==. // drop missing values:in this case isn't necessary
+
+tsset time, quarterly // tell stata time index is quarterly
+
 ```
 
 ### Topics discused
 
 ````markdown
-# STATIONARITY
-# TEST OF NON-STATIONARITY (DICKEY FULLER)
-# AUTOCORRELATION FUNCTION
-# INFORMATION CRITERION
-# MODELS: AR, ARMA, VAR
+# TEST OF NO COINTEGRATION WITH DICKEY FULLER
+# KEYNESIAN CONSUMPTION FUNCTION
+# DYNAMIC MULTIPLIERS
+# REGRESSIONS: long run marginal effect of log income on log consumption
+# ERROR CORRECTION MODEL AND HAC STANDARD ERROR
 ````
 
-### Exercises (graphics and images attached in index.md file)
+### Exercises (graphics/images attached in index.md file)
 
-#### (a) Graph the series for sales. Does it appear to be stationary, trend stationary or stochastic?
-It seems to be stationary as there’s no trend, and the values are constantly going up and down 
-around the mean, which seems to be approximately the same during different range periods.
-It doesn’t neither seem to exist a high covariance between any value and its lagged ones.
+### 1.Work on the relationship between the log of real personal disposable income and the log of real personal consumption expenditure
 
-#### (b) Formally test for the presence of a unit root. Explain what version of the test you used and why you used it.
-I will use the Dickey–Fuller (ADF) test as it serves to test if the series follows a unit-root 
-process, or in other words, if it’s non-stationary. The null hypothesis is that the variable 
-contains a unit root(rho=1), and the alternative hypothesis is that the series is stationary/has 
-no unit root process.
-I’m using the ADF version with no trend because the autocorrelation graphs don’t seem to 
-have a drift or linear trend as the data looks stationary and like a random walk. The variable 
-tested is the log of sales revenues, as It is more appropriate than the actual values.
-The coefficient of the regression is not closed to 1, and we can see that the Test Statistic is 
-bigger than any critical value in absolute term, so we can reject the null hypothesis that there’s 
-unit root in the series and we can confirm the time series is stationary.
+#### (a) For each series, decide whether it has a unit root or not. Use a formal test.
+If we look to the graphs of the series, we see there are clear trends, then data seems to be 
+non-stationarity. For that reason, we suspect data is I(1). It must be a deterministic trend or 
+random walk with drift. 
+If we do an augmented dickey-fuller test on both series with trend (as there are trend), we see
+we cannot reject the null hypothesis that there’s unit root.
+H0 : Sum of coefficients = 1 H1 : Sum of coefficients < 1
+But if we do the same test with the first differences, we get rid of the trend and we see that 
+data is stationary as the test statistics of both series are bigger in absolute terms than the 
+critical values at 10%,5%, and 1% Confidence level. It leads us to reject the null hypothesis that 
+there’s unit root at the 1% Confidence level. Thus, as expected, our data is I(1) for both series.
 
-#### (c) Examine the autocorrelation function and propose one or two possible models that may have generated the series. Where “c” is the difference of weekly log revenues of sales.
+#### (b)Regardless of the result in part a, assume now that both series have unit roots. Estimate the simple Keynesian consumption function (log consumption is a function of log income). What is the implication of non-stationarity of the series for the results of the regression?
+The result looks pretty decent as the R-squared is mostly 1 and the coefficient is statistically significant, but that may be unreal.
+Ct = ρ1Yt-1 + ρkYt-k + ε
+If series are non-stationary, OLS will find anyway coefficients that make the series look in 
+equilibrium, or in other words, cointegrated. And those coefficients are significant, but they 
+are not true values as such equilibrium doesn’t exist actually. And as they are not real values,
+we say OLS is biased. It would have been better to make a regression using the 1st differences 
+as the series become stationary.
+
+
+#### (c) Now estimate a DL version of the function. Use OLS and HAC corrected standard errors. Be clear about why you choose the particular number of lags in the regression.
+A DL model is similar to an AR model, but instead of using lagged values of the variable itself, 
+we use lag values of an explanatory variable. First, I took a regression with 3 lags as it looks a 
+good number after seeing the ACF & PAC functions of both variables. As I proofed, data is I(1)
+so we can make the regression with the first differences. Results show that there are 3 
+coefficients which are statistically significant, so 3 lags are a good choice.
+d.Ct = ρ0d.Yt + ρ1d.Yt-1 + ρ2d.Yt-2 + ρ3d.Yt-3 + ε
+Then, in order to use the HAC standard errors, I need to specify the number of lags that I think 
+there are in the error terms. I will use the next formula = 0.75 ∗ (T ^1/3), as computer 
+simulations suggest is the best one. The result is 4.3, so I will take 4 lags as It’s the closest 
+integer.
 As it is also seen with the function corrgram, the ACF only has 1 lag out of the confidence 
 interval and keeps oscillating while it is decaying. That suggests an AR(1) or MA(1). On the 
 other hand, the PACF has several spikes and a big one at the end, which suggests the series is 
@@ -58,56 +79,126 @@ constantly, which means that just an AM model isn’t a good fit. To verify, if 
 MA(1) and ARMA(1,1) models, we appreciate the ARMA (1,1) has the most biggest BIC value in 
 absolute terms.
 
-#### d) Estimate the model(s) proposed in part (c).
-I estimate all 3 models: First one is AR(1) whose rho is -0.0397 and significant.
-The MA(1): Coefficient of 0.6237
-The AR(1)MA(1) graph model is in index.md
- 
-#### (e) Assess your model(s) using if possible formal tests and/or an information criterion.
-I will use the next information criterion to assess the arma model and select the lag length:
--AIC= ln(SSR(k)/T) + (k+1) 2/T
--BIC= ln(SSR(k)/T) + (k+1) lnT/T
-After calculate different BIC with different lags in AR, I noticed the ARMA(1,1) model is the 
-best one fitting as it has the most negative BIC.
-Moreover, the ARMA(1,1) has a higher log likelihood than the other models.
+#### d) Explain in words what are the economic implications of the coefficients.
+The first coefficient is 0.33, which says if income increases 1% in this period, consumption only 
+increases 0.33% this period.
+Then, if income increases 1% this period, consumption only increases 0.23% in the next period. 
+It can also be seen backwards. An increase on income of 1% one period ago increases
+consumption on 0.23 % this period.
+The coefficient for 2 lags is 0.71, which means that an increase on income of 1% two period 
+ago, increases consumption on 0.71% this period. But we can think about this effect as 0 as it’s 
+not statistically significant.
+The coefficient for 3 lags is 0.1, which means that an increase on income of 1% three periods
+ago, increases consumption on 0.1% this period. 
+We see consumption is affected by income, but not just contemporaneously. What people 
+earns today, it will affect the consumption today, and even more the one in next periods.
 
-#### (f) Estimate the model you deem most appropriate and estimate it again on the first 100  observations.
-Now I use arima command with w<101 where w=weeks
-The rhos are 0.4848 and -1 respectively. Only one coefficient is significant.
+#### (e) Calculate the long run marginal effect of log income on log consumption. Test the hypothesis that this is equal 1.
+The long run marginal effect are the cumulative dynamic multipliers. The cumulative dynamic 
+multipliers are the sum of the dynamic multipliers in a regression. In order to calculate them, 
+we need a distributed lag model. We used 4 lags as It seems convenient after looking at the 
+correlation functions.
+Ct = ρ0 Yt + ρ1Yt-1 + ρ2Yt-2 + ρ3Yt-3 + ρ4Yt-4 + ε
+Let’s test the null hypothesis that the sum of the dynamic multipliers, which are the 
+coefficients, equal to 1. In this case, the sum of the multipliers is 1.03 which it’s mostly 1. Then 
+we cannot reject that null hypothesis it’s true.
+H0 : Unit root/Non-stationarity , H1 : Stationarity H0 : ρ1 + ρ2 + ρ3 + ρ4= 1
 
-#### (g) Generate forecasts for the next 57 observations, and plot forecasted and actual 
-observations. Assess the forecasting power of your model.
-The forecast has less variance than the actual values. But it is a good forecast as It’s most of 
-the time between the 95% level error bands.
+#### (f) In your opinion, does the model meet the requirements of the DL model in term of the exogeneity of the regressors?
+There’s no exogeneity as I believe there’s simultaneity bias between consumption 
+expenditure and income. Both variables influence each other. Following economic intuition, it 
+is true that if people have higher income, they will be able to consume more. But on the other 
+hand, if consumption increases, firms will obtain more profits and that might produce an 
+increase on salaries of workers, which means a shift in income.
 
-#### (h) Estimate a VAR model of sales and advertising. Be sure to justify your choice of lag length. 
-VAR suggests using 1 lag length, as it has the biggest values of HQIC and SBIC.
-Then, this is our VAR model with lag 1. The R-squared is not too big as there’s no unit root.
+### 2.Purchasing Power Parity (PPP)
 
-#### (i) Do sales Granger cause advertising or vice-versa of both? Carefully state the null hypothesis of any tests you employ and carefully state the conclusion.
-When we add more variables to a regression could be beneficial or not: As there are more 
-variable, it is easier to track the data and reduce the error term (1st source of error), but on the 
-other hand, we estimate each parameter less precise as we have more (2nd source of error). 
-Granger is a formal test that helps us to guess if we should add more variables or not to the 
-regression.
-In this case, the probability that null hypothesis (advertising doesn’t explain sales revenues) is 
-true equals 0, so we can reject the null hypothesis and say that advertising expenditure
-granger causes sales revenues, which It makes sense from an economic and practical view.
-On the other hand, the probability that sales revenues don’t explain advertising expenditure is 
-much bigger than any possible critical value. Thus, sales revenues don’t granger cause 
-advertising, which follows the economic intuition.
+#### (a) Assess the stationarity of the time series and their order of integration.
+First, we look at the graphs of the series, and we see all of them have a trend. I expect there’s 
+non-stationarity. Let’s do an augmented dickey fuller test whose null hypothesis is there’s unit 
+root, or in other words, non-stationarity.
+H0 : Sum of coefficients = 1 (unit root) , H1 : Sum of coefficients < 1
+The US CPI has a t statistic bigger in absolute terms than every critical value, can reject the null 
+hypothesis that there’s non-stationarity at the 1% Confidence level. H0 : yt ∼ I(1) H1 : yt ∼ I(0)
+We see that both the exchange rate and UK CPI have t statistics that are between the critical 
+values, so we cannot reject the null hypothesis that there’s non-stationarity at 1% confidence 
+level. We could actually reject the null hypothesis that there’s stationarity in the UK CPI at 5% 
+level.
+But if we make a dickey fuller test of the first difference of the exchange rate and UK CPI, the t 
+statistics are much bigger in absolute terms than all critical values, thus, we can reject the 
+hypothesis that they are non-stationary at the 1% Confidence level. Overall, We find then that 
+exchange rate and UK CPI are I(1) and US CPI is I(0).
 
-#### (j) Generate a set impulse response functions and discuss their economic interpretation.
-As we can see, the impulse response function of sales revenues on advertising spending is 0 
-during all the lags. It does make sense as in real businesses sales revenues have no effect on 
-the quantity a firm spends on advertising. But the opposite is true: the intuition tells us that 
-the more a firms spends on advertising, the more it will sell. In fact, that’s what the irf graph of 
-advertising on sales shows us: Sales revenues are affected by the advertising expenditure from 
-1 week ago, but not more periods ago.
+#### (b) Explain how PPP implies that the 3 variables are cointegrated.
+The PPP states that the inflation of two countries have a direct relationship with the future 
+exchange rate between the currencies of both countries.
+It has generally the next formula → S1 = S0(1+ UK CPI/1+ US CPI), where S1 and S0 are the 
+estimated future and current exchange rate respectively between the pound and the American 
+dollar. 
+Cointegration technically means a linear combination of I(1) variables that becomes I(0). We 
+say that the PPP variables are cointegrated as the deviation of one variable and the change in 
+another one cancel each-other out, meaning that there’s usually an equilibrium in the 
+relationship between both currencies and exchange rate, and if there’s not, variables will 
+return to the equilibrium in the long term. Shocks to variables may persist forever but 
+deviations from equilibrium don’t.
+For example, if UK CPI increases more than US CPI, I will have less purchasing power if I 
+transfer my dollars to pounds. But that’s not true because if we attend to the PPP formula, an 
+increase of UK CPI over US CPI means a higher exchange rate in the next period, so my dollars 
+would appreciate over the pound, meaning that my purchasing power would be approximately 
+the same as before.
 
-#### (k) Generate a forecast of sales from the VAR and compare it to the univariate forecast of part (g).
-Graph with actual data, forecast using VAR and forecast using AR from part g).
-As It is appreciated, the forecast from the VAR follows very well the path of the actual data
+#### (c) Test whether they are, in fact, cointegrated.
+If we think there is an equilibrium relationship, the deviations from the equilibrium should be 
+modelled by the residuals in the regression. First, let’s do a VAR of the variables to get 
+residuals.
+Then, I will do an ADF test where the null hypothesis is that residuals are I(1), or not 
+cointegrated:
+H0 : ε t ∼ I(1) , H1 : ε t ∼ I(0)
+It’s a test of no cointegration. I add the notrend command as there’s no trend in residuals, and 
+they seem stationary. We use 2 lags as It seems appropriate after looking at BIC.
+It is true that the critical values are not actually the real ones, as residuals are not data. It’s not 
+something we could directly observe from the past as it comes from a previous statistical 
+procedure. We can use special critical values, but anyway it shouldn’t be a problem as the t 
+statistic is much bigger in absolute terms than the critical values at every significance level. We 
+can reject the null hypothesis that residuals are not cointegrated at 1% confidence level. Then, 
+we can say residuals are stationary at 1% confidence level, thus we expect the 3 variables are 
+cointegrated as there’s an equilibrium relationship.
+
+#### (d) Regardless of the result of part c, estimate an error-correction model. Interpret the coefficients.
+An ECM estimates how much a variable is “corrected” after it deviates, as the residual
+measures the deviations of such variable. I estimate 3 different regressions to see the ECM for 
+each variable. Let’s interpret one of them:
+d.e = d. et-1 + d.CPI_USt-1 + d.CPI_UKt-1 + d. et-2 + d.CPI_USt-2 + d.CPI_UKt-2 + Ut-1 
+In this case, if exchanges rates deviates 1% in a positive direction, they will go down a 0.96 %.
+We say the deviation is corrected, which is what I expected.
+
+#### (e) There is a weaker form of PPP which states that inflation in both countries and the change in the exchange rate have an equilibrium relationship. Test for the presence of this equilibrium relationship.
+Inflation means the change of prices from one period to another. As previously, I do a VAR but 
+now with the difference of the 3 variables to obtain residuals.
+Then, to test for cointegration, l do an ADF test where the null hypothesis is that residuals are 
+I(1), or not cointegrated. So, it’s a test of no cointegration. H0 : εt ∼ I(1) , H1 : ε t ∼ I(0)
+I add the notrend command as there’s no trend in residuals, and they seem stationary. We use 
+in this case 1 lag as It seems appropriate after looking at BIC.
+The t statistic is much bigger in absolute terms than the critical values at every significance 
+level. No matter if those critical values are the real ones, the difference between them and the 
+test statistic is huge. So, we can reject the null hypothesis that residuals are not cointegrated 
+at 1% confidence level. Then, we can say residuals are stationary with 99% confidence, thus 
+inflation in both countries and the change in the exchange rate have probably an equilibrium 
+relationship.
+
+#### (f) Estimate the resulting error correction model that would hold in the presence of weak PPP. Interpret the coefficients.
+We measure the equilibrium relationship between the difference of the variables of the PPP.
+So, in order to measure the ECM, we have to make regressions with the difference on the 
+difference of the 3 original variables and the 1 lag error term.
+d.change_e = d.change_et-1 + d.infl_UKt-1 + d.infl_USt-1 + Ut-1 
+If a change in exchange rate deviates 1%, then it will be corrected by declining 1.04%. It makes 
+sense as exchange rates tends to be in equilibrium most of the time.
+d.inflation_UK = d.change_et-1 + d.infl_UKt-1 + d.infl_USt-1 + Ut-1 
+If a change in UK inflation deviates 1%, then it will be corrected by declining 0.96%. 
+d.inflation_US = d.change_et-1 + d.infl_UKt-1 + d.infl_USt-1 + Ut-1 
+If a change in US inflation deviates 1%, then it will be corrected by declining 0.52%. Deviations 
+in inflation produce a greater correction in UK than U.S.
+
 ````
 ___
 
@@ -116,4 +207,3 @@ ___
 
 "Time Series Analysis: Forecasting and Control", 5th Edition, George E. P. Box, Gwilym M. Jenkins, Gregory C. Reinsel, Greta M. Ljung
 
-Sources: dataset: file sales.dta contains 157 weekly observations on sales revenues (sales) and advertising expenditure (adv) in millions of dollars for a large US department store for 2005-2007
